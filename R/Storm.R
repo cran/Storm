@@ -14,7 +14,7 @@ Tuple = setRefClass("Tuple",
                       #XXX integer?
                       task="character",
                       #All input values in this tuple
-                      input="vector",
+                      input="list",
                       #All output values for this tuple
                       output="vector",
                       #All tuples used to create field @tuple.out
@@ -30,7 +30,7 @@ Tuple$methods(
     .self$comp=as.character(t$comp);
     .self$stream=as.character(t$stream);
     .self$task=as.character(t$task);
-    .self$input=unlist(t$tuple);
+    .self$input=t$tuple;
     .self$output=vector(mode="character");
     .self$anchors=vector(mode="character");
     .self;
@@ -71,12 +71,8 @@ Storm$methods(
     x.stdin = file("stdin");
     open(x.stdin);
 
-    #x.stdout = file("stdout");
-    #cat(paste('{"pid": ',Sys.getpid(),'}',"\n",sep=""),file=x.stdout);
     cat(paste('{"pid": ',Sys.getpid(),'}',"\nend\n",sep=""));
     cat('{"command": "emit", "anchors": [], "tuple": ["bolt initializing"]}\nend\n');
-    #flush(x.stdout);
-    #close(x.stdout);
 
     while (TRUE) {
       rl = as.character(readLines(con=x.stdin,n=1,warn=FALSE));
@@ -155,16 +151,13 @@ Storm$methods(
 );
 Storm$methods(
   ack = function(tuple=Tuple) {
-    x.stdout = file("stdout");
     cat(c(
       '{\n',
       '\t"command": "ack",\n',
       '\t"id": "',tuple$id,'"\n',
       '}\n',
       'end\n'
-    ),sep="",file=x.stdout);
-    flush(x.stdout);
-    close(x.stdout);
+    ),sep="");
   }
 );
 Storm$methods(
@@ -212,7 +205,8 @@ Storm$methods(
       #https://github.com/nathanmarz/storm/wiki/Multilang-protocol
       #'"task": "',tuple$task,'", ',
 
-      '"tuple": ',t.prefix,toJSON(tuple$output),t.suffix,
+      #'"tuple": ',t.prefix,toJSON(tuple$output),t.suffix,
+      '"tuple": ',toJSON(tuple$output),
       '}\n',
       'end\n'
     ),sep="");
